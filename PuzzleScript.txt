@@ -1,0 +1,320 @@
+title Sliding Ice Puzzle
+author Wilson Kooi
+homepage www.puzzlescript.net
+
+========
+OBJECTS
+========
+
+Background
+blue lightblue white
+00000
+00020
+00002
+20000
+01000
+
+
+Target
+red white
+00000
+01110
+01010
+01110
+00000
+
+OffTarget 
+red white darkblue
+22222
+21112
+21012
+21112
+22222
+
+Wall
+darkblue
+
+NE_Corner
+darkblue transparent
+01111
+00111
+00011
+00001
+00000
+
+
+SW_Corner
+transparent darkblue
+11111
+01111
+00111
+00011
+00001
+
+SE_Corner
+transparent darkblue
+11111
+11110
+11100
+11000
+10000
+
+NW_Corner
+transparent darkblue
+00001
+00011
+00111
+01111
+11111
+
+Player
+orange transparent yellow
+11011
+10001
+02020
+10001
+10101
+
+ButtonUp
+brown lightred transparent
+02220
+21112
+21112
+21112
+02220
+
+ButtonDown
+brown darkred transparent
+02220
+21112
+21112
+21112
+02220
+
+N_Spring
+gray red transparent darkblue
+22222
+22222
+21112
+11111
+22022
+
+E_Wall
+darkblue transparent
+10000
+10000
+10000
+10000
+10000
+
+W_Wall
+darkblue transparent
+00001
+00001
+00001
+00001
+00001
+
+N_Mover
+transparent
+S_Mover
+transparent
+E_Mover
+transparent
+W_Mover
+transparent
+
+PlayerStopped
+transparent
+PlayerStoppedDone 
+transparent
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+E = E_Wall
+W = W_Wall
+L = NE_Corner
+7 = SW_Corner
+r = SE_Corner
+/ = NW_Corner
+
+P = Player
+T = Target
+O = OffTarget
+B = ButtonUp
+
+N = N_Spring
+
+Walls = Wall or E_Wall or W_Wall
+Stopper = OffTarget or Walls
+Mover = N_Mover or S_Mover or W_Mover or E_Mover
+S = Wall and PlayerStoppedDone
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target, ButtonUp, ButtonDown
+Player, Wall, E_Wall, W_Wall, OffTarget
+NE_Corner, NW_Corner, SW_Corner, SE_Corner, N_Spring
+N_Mover, S_Mover, E_Mover, W_Mover, PlayerStopped, PlayerStoppedDone
+
+======
+RULES
+======
+
+(SW Corner redirect)
+RIGHT [ | N_Mover SW_Corner ] -> [ W_Mover | SW_Corner N_Mover ] 
+UP [ | E_Mover SW_Corner ] -> [ S_Mover | SW_Corner E_Mover ] 
+(SW corner stop)
+[ W_Mover SW_Corner ] -> [SW_Corner]
+[ S_Mover SW_Corner ] -> [SW_Corner]
+(SW delete continue through mover)
+RIGHT [SW_Corner | E_Mover ] -> [SW_Corner | ]
+UP [ SW_Corner | N_Mover ] -> [SW_Corner | ]
+
+(SE Corner redirect)
+LEFT [ | N_Mover SE_Corner ] -> [ E_Mover | SE_Corner N_Mover ] 
+UP [ | W_Mover SE_Corner ] -> [ S_Mover | SE_Corner W_Mover ] 
+(SE corner stop)
+[ E_Mover SE_Corner ] -> [SE_Corner]
+[ S_Mover SE_Corner ] -> [SE_Corner]
+(SE delete continue through mover)
+LEFT [SE_Corner | W_Mover ] -> [SE_Corner | ]
+UP [ SE_Corner | N_Mover ] -> [SE_Corner | ]
+
+(NE Corner redirect)
+DOWN [ | W_Mover NE_Corner ] -> [ N_Mover | NE_Corner W_Mover ] 
+LEFT [ | S_Mover NE_Corner ] -> [ E_Mover | NE_Corner S_Mover ] 
+(NE corner stop)
+[ E_Mover NE_Corner ] -> [NE_Corner]
+[ N_Mover NE_Corner ] -> [NE_Corner]
+(NE delete continue through mover)
+LEFT [NE_Corner | W_Mover ] -> [NE_Corner | ]
+DOWN [ NE_Corner | S_Mover ] -> [NE_Corner | ]
+
+(NW Corner redirect)
+DOWN [ | E_Mover NW_Corner ] -> [ N_Mover | NW_Corner E_Mover ] 
+RIGHT [ | S_Mover NW_Corner ] -> [ W_Mover | NW_Corner S_Mover ] 
+(NW corner stop)
+[ W_Mover NW_Corner ] -> [NW_Corner]
+[ N_Mover NW_Corner ] -> [NW_Corner]
+(NW delete continue through mover)
+RIGHT [NW_Corner | E_Mover ] -> [NW_Corner | ]
+DOWN [ NW_Corner | S_Mover ] -> [NW_Corner | ]
+
+(N_Spring redirect)
+DOWN [ | S_Mover N_Spring] -> [ N_Mover | N_Spring S_Mover ]
+DOWN [ N_Spring | S_Mover ] -> [ N_Spring | ]
+
+(Button control)
+[ OffTarget ] -> [ Target ]
+
+(Cleanup: if the Mover overlaps with an obstacle, delete the mover.)
+[ ButtonUp ] [ Target ] -> [ ButtonUp ] [ OffTarget ] 
+[ Mover Stopper ] [ PlayerStoppedDone ] -> [ Stopper ] [ PlayerStopped ]
+[ Mover Stopper ] -> [ Stopper ]
+[ ButtonDown No Player ] [ PlayerStopped ] -> [ ButtonUp ] [ PlayerStopped ]  
+[ ButtonUp ] [ Target ] -> [ ButtonUp ] [ OffTarget ] 
+[ PlayerStopped ] -> [PlayerStoppedDone]
+
+(If the player in next to a mover object, remove the mover object and get the player moving towards where the object was.)
+[ > Player | ButtonUp ] -> [ > Player | ButtonDown ]
+[ Player | Mover ButtonUp ] -> [ > Player | ButtonDown ]
+[ Player | Mover ] -> [ > Player | ] 
+
+(If the player is moving and there are no obstacles ahead, create a mover object ONE STEP FURTHER in that direction. Don't move the player immediately, but restart the loop after a delay.)
+RIGHT [ RIGHT Player | NO Stopper | ] -> [ RIGHT Player | | E_Mover ] again
+LEFT [ LEFT Player | NO Stopper | ] -> [ LEFT Player | | W_Mover ] again
+UP [ UP Player | NO Stopper | ] -> [ UP Player | | N_Mover ] again
+DOWN [ DOWN Player | NO Stopper | ] -> [ DOWN Player | | S_Mover ] again
+
+==============
+WINCONDITIONS
+==============
+
+all Player on Target
+
+=======
+LEVELS
+=======
+
+message "1/5 - bounce off of the corners"
+###########
+#P##T..7###
+#.#####.###
+#....7#.###
+#.......7##
+#L.......7#
+##........#
+##......#.#
+##...####.#
+##........#
+###########
+
+
+message "2/5 - the button releases when you stop"
+S########
+####....#
+###.....#
+#P..B...#
+##......#
+##L.....#
+####L..O#
+#########
+
+message "3/5 - remember, press all the buttons in the same move"
+S############
+#.##.##...7##
+#.b..##....##
+#p.........##
+##...##.##.##
+##..###.##.##
+##lb.7#.##.##
+###........##
+#...#......##
+#..##l.b..b7#
+#..###......#
+#...........#
+#l.........o#
+#############
+
+message "4/5 - springs reverse your direction"
+S#############
+#P.........###
+#B..7##....###
+#.........####
+#.........####
+#L........7###
+####LB......O#
+#####.......##
+#########WNE##
+##############
+
+message "5/5 - putting it all together"
+s#################
+#####r...7##....##
+###.............##
+###.....#be.....##
+###NE...#ne.....##
+#####...###l...p##
+###.....####..####
+#R....B...7#..####
+#..#..........7###
+#..#w..........###
+#..#w...e#O#...###
+#B.#w.nne#.#...###
+#..#w.####.....###
+#.....####l....###
+#.....#######w.###
+#L.B./#######wn###
+##################
